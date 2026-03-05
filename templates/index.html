@@ -1,158 +1,269 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>登記情報パーサー</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif; background: #f5f6fa; color: #2d3436; }
-    .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
-    h1 { text-align: center; margin: 20px 0; font-size: 1.6em; color: #2d3436; }
-    h1 small { display: block; font-size: 0.5em; color: #636e72; font-weight: normal; margin-top: 4px; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登記情報アナライザー</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f7f5; --white: #fff; --text: #1a1a1a; --sub: #6b6b6b; --muted: #9a9a9a; --faint: #d0d0d0;
+  --line: #e0e0dd; --line-light: #eeeee9; --accent: #1a1a1a;
+  --red: #d93025; --red-bg: #fce8e6; --amber: #e37400; --amber-bg: #fef7e0;
+  --green: #188038; --green-bg: #e6f4ea; --blue: #1a73e8; --blue-bg: #e8f0fe;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans JP', -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-    /* アップロード */
-    .upload-area { border: 2px dashed #b2bec3; border-radius: 12px; padding: 40px; text-align: center; margin-bottom: 24px; background: #fff; cursor: pointer; transition: border-color 0.2s; }
-    .upload-area:hover, .upload-area.dragover { border-color: #0984e3; background: #f0f6ff; }
-    .upload-area input { display: none; }
-    .upload-area p { font-size: 1.1em; color: #636e72; }
-    .upload-area .icon { font-size: 2.5em; margin-bottom: 8px; }
-    .btn { display: inline-block; padding: 10px 28px; background: #0984e3; color: #fff; border: none; border-radius: 6px; font-size: 1em; cursor: pointer; margin-top: 12px; }
-    .btn:hover { background: #0876cc; }
+/* ── Upload ── */
+.upload-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 40px 24px; }
+.upload-title { font-size: 20px; font-weight: 700; letter-spacing: 0.04em; margin-bottom: 8px; }
+.upload-sub { font-size: 13px; color: var(--muted); line-height: 1.6; text-align: center; margin-bottom: 32px; }
+.upload-zone { width: 100%; max-width: 380px; padding: 52px 24px; text-align: center; border: 2px dashed var(--faint); border-radius: 14px; background: var(--white); cursor: pointer; transition: all 0.2s; }
+.upload-zone:hover, .upload-zone.dragover { border-color: var(--blue); background: var(--blue-bg); }
+.upload-zone .icon { font-size: 28px; margin-bottom: 12px; opacity: 0.6; }
+.upload-zone .main-text { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.upload-zone .sub-text { font-size: 12px; color: var(--muted); }
+.upload-zone input { display: none; }
 
-    /* ローディング */
-    .loading { display: none; text-align: center; padding: 40px; }
-    .loading.active { display: block; }
-    .spinner { width: 40px; height: 40px; border: 4px solid #dfe6e9; border-top: 4px solid #0984e3; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+/* ── Loading ── */
+.loading-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 998; height: 2px; background: var(--line); overflow: hidden; display: none; }
+.loading-bar.active { display: block; }
+.loading-bar .bar { height: 100%; background: var(--blue); width: 30%; animation: sl 1.2s ease infinite; }
+@keyframes sl { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }
 
-    /* 結果 */
-    .result { display: none; }
-    .result.active { display: block; }
+.loading-spinner { width: 28px; height: 28px; border: 2px solid var(--line); border-top-color: var(--blue); border-radius: 50%; margin: 0 auto 14px; animation: sp .7s linear infinite; }
+@keyframes sp { to { transform: rotate(360deg); } }
+.loading-text { font-size: 13px; font-weight: 500; }
 
-    .card { background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px; overflow: hidden; }
-    .card-header { background: #2d3436; color: #fff; padding: 12px 20px; font-size: 1.05em; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-    .card-header .badge { background: #0984e3; padding: 3px 12px; border-radius: 12px; font-size: 0.8em; }
-    .card-body { padding: 16px 20px; }
+/* ── Result Layout ── */
+.result-page { display: none; }
+.result-page.active { display: block; }
 
-    .info-grid { display: grid; grid-template-columns: 140px 1fr; gap: 6px 16px; }
-    .info-grid .label { color: #636e72; font-size: 0.9em; font-weight: bold; padding: 4px 0; }
-    .info-grid .value { padding: 4px 0; word-break: break-all; }
+header { background: var(--white); border-bottom: 1px solid var(--line); padding: 14px 20px; }
+header .top-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+header h1 { font-size: 14px; font-weight: 700; letter-spacing: 0.04em; }
+header .controls { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+header .tabs { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
 
-    /* 権利部テーブル */
-    .kenri-table { width: 100%; border-collapse: collapse; font-size: 0.92em; }
-    .kenri-table th { background: #dfe6e9; padding: 8px 12px; text-align: left; white-space: nowrap; font-weight: bold; }
-    .kenri-table td { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
-    .kenri-table tr:hover { background: #f8f9fa; }
+.tab-btn { padding: 5px 11px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; background: var(--white); color: var(--sub); border: 1px solid var(--line); font-family: inherit; transition: all 0.15s; }
+.tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.tab-btn.dashed { border: 1px dashed var(--faint); color: var(--muted); font-size: 11px; padding: 5px 9px; }
 
-    .detail-list { margin: 0; padding: 0; list-style: none; }
-    .detail-list li { margin-bottom: 3px; }
-    .detail-list .dk { color: #636e72; font-size: 0.85em; margin-right: 4px; }
+.mode-toggle { display: inline-flex; gap: 1px; padding: 3px; background: var(--line-light); border-radius: 8px; }
+.mode-btn { padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 400; cursor: pointer; background: transparent; color: var(--muted); border: none; font-family: inherit; display: flex; align-items: center; gap: 4px; }
+.mode-btn.active { background: var(--white); color: var(--text); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+.mode-count { background: var(--line-light); color: var(--muted); border-radius: 6px; padding: 0 5px; font-size: 10px; font-weight: 700; }
+.mode-btn.active .mode-count { background: var(--amber-bg); color: var(--amber); }
 
-    /* 床面積 */
-    .menseki-list { display: flex; flex-wrap: wrap; gap: 6px; }
-    .menseki-item { background: #f0f6ff; padding: 3px 10px; border-radius: 4px; font-size: 0.9em; }
+.btn-small { padding: 4px 10px; border-radius: 5px; font-size: 11px; font-weight: 500; cursor: pointer; background: var(--white); color: var(--sub); border: 1px solid var(--line); font-family: inherit; }
 
-    /* 所在リスト */
-    .shozai-list { list-style: none; padding: 0; }
-    .shozai-list li { padding: 2px 0; }
-    .shozai-list li + li { color: #636e72; font-size: 0.9em; }
+main { padding: 20px; max-width: 920px; }
 
-    /* エラー */
-    .error { background: #ffe0e0; color: #d63031; padding: 16px; border-radius: 8px; margin: 20px 0; display: none; }
-    .error.active { display: block; }
+/* ── Card ── */
+.reg-card { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--white); }
+.sec-head { padding: 8px 12px; font-size: 12.5px; font-weight: 700; color: var(--sub); background: var(--bg); border-bottom: 1px solid var(--line); letter-spacing: 0.06em; display: flex; justify-content: space-between; align-items: center; }
+.sec-head .right { font-size: 12.5px; font-weight: 600; }
+.sec-head .right.red { color: var(--red); }
+.sec-head .right.green { color: var(--green); font-weight: 500; }
 
-    /* JSON表示 */
-    .json-toggle { text-align: right; margin-bottom: 8px; }
-    .json-toggle button { background: none; border: 1px solid #b2bec3; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em; color: #636e72; }
-    .json-area { display: none; background: #2d3436; color: #dfe6e9; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 0.85em; font-family: "Consolas", "Monaco", monospace; white-space: pre-wrap; max-height: 500px; overflow-y: auto; }
-    .json-area.active { display: block; }
-  </style>
+/* ── Table ── */
+.reg-table { width: 100%; border-collapse: collapse; }
+.reg-table th { padding: 7px 10px; font-size: 12.5px; color: var(--muted); background: var(--bg); border-bottom: 1px solid var(--line); border-right: 1px solid var(--line-light); vertical-align: top; text-align: left; font-weight: 500; }
+.reg-table td { padding: 7px 10px; font-size: 13px; color: var(--text); border-bottom: 1px solid var(--line-light); vertical-align: top; line-height: 1.7; }
+.reg-table td.sub { color: var(--sub); }
+.reg-table td.center { text-align: center; }
+.reg-table td.rank { text-align: center; font-weight: 600; border-right: 1px solid var(--line-light); }
+.reg-table td.bordered { border-right: 1px solid var(--line-light); }
+.reg-table .bold { font-weight: 600; }
+.reg-table .muted { color: var(--muted); }
+.reg-table .strike { text-decoration: line-through; }
+.reg-table .inactive { opacity: 0.28; }
+.reg-table .hidden { display: none; }
+.reg-table .empty-row td { text-align: center; color: var(--muted); padding: 20px; }
+.reg-table .detail-label { color: var(--muted); margin-right: 6px; font-size: 12px; }
+.reg-table .detail-line { margin-bottom: 1px; }
+.reg-table .owner-block { margin-top: 2px; }
+.reg-table .owner-label { color: var(--muted); font-size: 12px; }
+.reg-table .owner-name { font-weight: 600; }
+.reg-table .deletion-badge { margin-top: 4px; padding: 3px 8px; background: var(--green-bg); border-radius: 3px; font-size: 10.5px; color: var(--green); display: inline-block; }
+
+/* Key-value rows */
+.kv-th { width: 80px; }
+
+/* ── Badge ── */
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 3px; font-size: 10.5px; font-weight: 500; line-height: 1.4; max-width: fit-content; margin-top: 4px; }
+.badge.error { background: var(--red-bg); color: var(--red); }
+.badge.warn { background: var(--amber-bg); color: var(--amber); }
+.badge.info { background: var(--blue-bg); color: var(--blue); }
+.badge .dot { font-size: 9px; }
+
+/* ── Menseki list ── */
+.menseki-list { display: flex; flex-wrap: wrap; gap: 4px; }
+.menseki-item { background: var(--bg); padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+
+/* ── JSON ── */
+.json-toggle { margin: 6px 20px 0; }
+.json-toggle summary { font-size: 11px; color: var(--muted); cursor: pointer; }
+.json-area { font-size: 10px; color: var(--sub); background: var(--white); border: 1px solid var(--line); border-radius: 6px; padding: 12px; max-height: 400px; overflow: auto; white-space: pre-wrap; margin-top: 6px; font-family: 'Consolas', 'Monaco', monospace; }
+
+/* ── Error ── */
+.error-msg { margin: 12px 20px 0; padding: 8px 12px; background: var(--red-bg); border-radius: 6px; font-size: 11px; color: var(--red); display: none; }
+.error-msg.active { display: block; }
+
+/* ── Footer ── */
+footer { padding: 16px 20px; text-align: center; }
+footer span { font-size: 10px; color: var(--faint); }
+
+/* ── Location history ── */
+.loc-history { margin-top: 4px; padding-top: 4px; border-top: 1px dashed var(--line-light); }
+.loc-cause { color: var(--muted); margin-left: 12px; }
+
+/* ── Drag overlay ── */
+.drag-overlay { position: fixed; inset: 0; background: rgba(247,247,245,0.96); z-index: 999; display: none; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+.drag-overlay.active { display: flex; }
+.drag-overlay .drop-icon { width: 52px; height: 52px; background: var(--blue-bg); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 14px; border: 2px dashed var(--blue); }
+.drag-overlay .drop-text { font-size: 14px; font-weight: 600; }
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>登記情報パーサー<small>不動産登記PDFを解析して構造化表示します</small></h1>
 
-    <div class="upload-area" id="uploadArea">
-      <div class="icon">📄</div>
-      <p>登記情報PDFをドラッグ＆ドロップ<br>またはクリックして選択</p>
-      <input type="file" id="fileInput" accept=".pdf">
-      <button class="btn" onclick="document.getElementById('fileInput').click()">ファイルを選択</button>
-    </div>
+<!-- Drag overlay -->
+<div class="drag-overlay" id="dragOverlay">
+  <div class="drop-icon">+</div>
+  <div class="drop-text">PDFをドロップして追加</div>
+</div>
 
-    <div class="loading" id="loading">
-      <div class="spinner"></div>
-      <p>解析中...</p>
-    </div>
+<!-- Loading bar -->
+<div class="loading-bar" id="loadingBar"><div class="bar"></div></div>
 
-    <div class="error" id="error"></div>
-
-    <div class="result" id="result"></div>
-
-    <div class="json-toggle" id="jsonToggle" style="display:none">
-      <button onclick="toggleJson()">JSON表示</button>
-    </div>
-    <pre class="json-area" id="jsonArea"></pre>
+<!-- Upload Screen -->
+<div class="upload-screen" id="uploadScreen">
+  <h1 class="upload-title">登記情報アナライザー</h1>
+  <p class="upload-sub">登記情報PDFをアップロードして分析<br>複数ファイルで横断比較</p>
+  <div class="upload-zone" id="uploadZone">
+    <div class="icon">↑</div>
+    <div class="main-text">PDFをドロップ</div>
+    <div class="sub-text">またはクリックして選択</div>
+    <input type="file" id="fileInput" accept=".pdf" multiple>
   </div>
+</div>
+
+<!-- Result Page -->
+<div class="result-page" id="resultPage">
+  <header>
+    <div class="top-row">
+      <div style="display:flex;align-items:center;gap:10px">
+        <h1>登記情報アナライザー</h1>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="btn-small" id="btnShowJson" onclick="toggleJson()">JSON</button>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="tabs" id="propTabs"></div>
+      <div class="mode-toggle" id="modeToggle">
+        <button class="mode-btn active" data-mode="all" onclick="setMode('all')">全部事項</button>
+        <button class="mode-btn" data-mode="current" onclick="setMode('current')">現在事項</button>
+        <button class="mode-btn" data-mode="analysis" onclick="setMode('analysis')">分析<span class="mode-count" id="issueCount" style="display:none">0</span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <details class="json-toggle" id="jsonToggle" style="display:none">
+    <summary>パース結果JSON（デバッグ）</summary>
+    <pre class="json-area" id="jsonArea"></pre>
+  </details>
+
+  <main id="mainContent"></main>
+
+  <footer><span>登記情報アナライザー v2.0</span></footer>
+</div>
 
 <script>
-const uploadArea = document.getElementById('uploadArea');
+/* ═══════════════════════════════════════════════
+   State
+   ═══════════════════════════════════════════════ */
+let allProps = [];
+let selectedIdx = 0;
+let viewMode = 'all'; // all | current | analysis
+
+/* ═══════════════════════════════════════════════
+   Upload & Parse
+   ═══════════════════════════════════════════════ */
+const uploadZone = document.getElementById('uploadZone');
 const fileInput = document.getElementById('fileInput');
-const loading = document.getElementById('loading');
-const errorDiv = document.getElementById('error');
-const resultDiv = document.getElementById('result');
-const jsonToggle = document.getElementById('jsonToggle');
-const jsonArea = document.getElementById('jsonArea');
+const uploadScreen = document.getElementById('uploadScreen');
+const resultPage = document.getElementById('resultPage');
+const loadingBar = document.getElementById('loadingBar');
+const dragOverlay = document.getElementById('dragOverlay');
 
-// ドラッグ＆ドロップ
-uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
-uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
-uploadArea.addEventListener('drop', e => {
-  e.preventDefault();
-  uploadArea.classList.remove('dragover');
-  if (e.dataTransfer.files.length > 0) processFile(e.dataTransfer.files[0]);
+uploadZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => { if (fileInput.files.length) processFiles(fileInput.files); });
+
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', e => { e.preventDefault(); uploadZone.classList.remove('dragover'); if (e.dataTransfer.files.length) processFiles(e.dataTransfer.files); });
+
+// Global drag for adding files
+document.body.addEventListener('dragover', e => { e.preventDefault(); if (allProps.length > 0) dragOverlay.classList.add('active'); });
+document.body.addEventListener('dragleave', e => { if (!e.relatedTarget || !document.body.contains(e.relatedTarget)) dragOverlay.classList.remove('active'); });
+document.body.addEventListener('drop', e => {
+  e.preventDefault(); dragOverlay.classList.remove('active');
+  if (allProps.length > 0 && e.dataTransfer.files.length) processFiles(e.dataTransfer.files, true);
 });
-uploadArea.addEventListener('click', () => fileInput.click());
-fileInput.addEventListener('change', () => { if (fileInput.files.length > 0) processFile(fileInput.files[0]); });
 
-async function processFile(file) {
-  if (!file.name.toLowerCase().endsWith('.pdf')) {
-    showError('PDFファイルを選択してください');
-    return;
+async function processFiles(files, append = false) {
+  const pdfs = Array.from(files).filter(f => f.name.toLowerCase().endsWith('.pdf'));
+  if (!pdfs.length) return;
+
+  loadingBar.classList.add('active');
+  if (!append) {
+    uploadZone.innerHTML = '<div class="loading-spinner"></div><div class="loading-text">解析中...</div>';
   }
 
-  loading.classList.add('active');
-  resultDiv.classList.remove('active');
-  errorDiv.classList.remove('active');
-  jsonToggle.style.display = 'none';
-  jsonArea.classList.remove('active');
-
-  const formData = new FormData();
-  formData.append('file', file);
-
   try {
-    const res = await fetch('/api/parse', { method: 'POST', body: formData });
-    const data = await res.json();
-
-    if (data.error) {
-      showError(data.error);
-    } else {
-      renderResult(data);
+    const results = [];
+    for (const file of pdfs) {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/parse', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      data._fn = file.name;
+      results.push(data);
     }
+    if (append) { allProps = [...allProps, ...results]; }
+    else { allProps = results; selectedIdx = 0; }
+    showResultPage();
   } catch (e) {
-    showError('通信エラー: ' + e.message);
+    if (!append) {
+      uploadZone.innerHTML = '<div class="icon">↑</div><div class="main-text">PDFをドロップ</div><div class="sub-text">またはクリックして選択</div><input type="file" id="fileInput" accept=".pdf" multiple>';
+      document.getElementById('fileInput').addEventListener('change', function() { if (this.files.length) processFiles(this.files); });
+    }
+    showError(e.message);
   } finally {
-    loading.classList.remove('active');
+    loadingBar.classList.remove('active');
   }
 }
 
 function showError(msg) {
-  errorDiv.textContent = msg;
-  errorDiv.classList.add('active');
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.classList.add('active');
+  setTimeout(() => el.classList.remove('active'), 5000);
 }
 
-function toggleJson() {
-  jsonArea.classList.toggle('active');
+/* ═══════════════════════════════════════════════
+   Render
+   ═══════════════════════════════════════════════ */
+function showResultPage() {
+  uploadScreen.style.display = 'none';
+  resultPage.classList.add('active');
+  renderTabs();
+  renderContent();
 }
 
 function esc(s) {
@@ -162,261 +273,354 @@ function esc(s) {
   return d.innerHTML;
 }
 
-function renderResult(data) {
+function renderTabs() {
+  const container = document.getElementById('propTabs');
   let html = '';
+  allProps.forEach((p, i) => {
+    const icon = p['種別'] === '土地' ? '📐' : p['種別'] === '区分建物' ? '🏢' : '🏠';
+    const label = p['種別'] || '物件';
+    const cls = i === selectedIdx ? 'tab-btn active' : 'tab-btn';
+    html += `<button class="${cls}" onclick="selectProp(${i})">${icon} ${esc(label)}</button>`;
+  });
+  html += `<button class="tab-btn dashed" onclick="addMore()">+</button>`;
+  container.innerHTML = html;
+}
 
-  // ヘッダー
-  html += `<div class="card">
-    <div class="card-header">
-      基本情報
-      <span class="badge">${esc(data['種別'] || '不明')}</span>
-    </div>
-    <div class="card-body">
-      <div class="info-grid">
-        <div class="label">ファイル名</div><div class="value">${esc(data['ファイル名'])}</div>`;
+function selectProp(i) { selectedIdx = i; renderTabs(); renderContent(); }
+function setMode(m) {
+  viewMode = m;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+  renderContent();
+}
 
-  const h = data['ヘッダー'] || {};
-  if (h['発行年月日']) html += `<div class="label">発行年月日</div><div class="value">${esc(h['発行年月日'])}</div>`;
-  if (h['照会番号']) html += `<div class="label">照会番号</div><div class="value">${esc(h['照会番号'])}</div>`;
-  if (h['現在日時']) html += `<div class="label">取得日時</div><div class="value">${esc(h['現在日時'])}</div>`;
+function addMore() {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.pdf'; inp.multiple = true;
+  inp.addEventListener('change', () => { if (inp.files.length) processFiles(inp.files, true); });
+  inp.click();
+}
 
-  html += `</div></div></div>`;
+function toggleJson() {
+  const el = document.getElementById('jsonToggle');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
 
-  // 表題部（土地）
-  if (data['種別'] === '土地') {
-    const t = data['表題部'] || {};
-    html += renderHyodaibuTochi(t);
+/* ═══════════════════════════════════════════════
+   Analysis
+   ═══════════════════════════════════════════════ */
+function buildAnnotations(data) {
+  const a = {};
+  const add = (k, type, msg) => { if (!a[k]) a[k] = []; a[k].push({ type, msg }); };
+  (data['権利部_乙区'] || []).forEach(e => {
+    if (!e['登記の目的']?.includes('抹消') && isActiveOtsu(e, data)) {
+      add(`乙区-${e['順位番号']}`, 'error', '有効な担保権 — 取引前に抹消が必要');
+    }
+  });
+  return a;
+}
+
+function isActiveOtsu(entry, data) {
+  const purpose = entry['登記の目的'] || '';
+  if (purpose.includes('抹消')) return false;
+  const rank = entry['順位番号'];
+  return !(data['権利部_乙区'] || []).some(e =>
+    e['登記の目的']?.includes('抹消') && e['登記の目的']?.includes(rank + '番')
+  );
+}
+
+function isActiveKou(entry, data) {
+  const purpose = entry['登記の目的'] || '';
+  if (purpose.includes('所有権移転') || purpose.includes('所有権保存')) {
+    const kouA = data['権利部_甲区'] || [];
+    const laterTransfer = kouA.find(e => {
+      const r1 = parseInt(entry['順位番号']), r2 = parseInt(e['順位番号']);
+      return r2 > r1 && (e['登記の目的']?.includes('所有権移転') || e['登記の目的']?.includes('所有権保存'));
+    });
+    return !laterTransfer;
   }
+  return true;
+}
 
-  // 表題部（建物）
-  if (data['種別'] === '建物') {
-    const t = data['表題部'] || {};
-    html += renderHyodaibuTatemono(t);
-  }
+function renderBadge(annotations, key) {
+  if (viewMode !== 'analysis' || !annotations || !annotations[key]) return '';
+  return annotations[key].map(a => {
+    const cls = a.type === 'error' ? 'error' : a.type === 'warn' ? 'warn' : 'info';
+    const dot = a.type === 'error' ? '●' : a.type === 'warn' ? '▲' : 'ℹ';
+    return `<div class="badge ${cls}"><span class="dot">${dot}</span>${esc(a.msg)}</div>`;
+  }).join('');
+}
 
-  // 区分建物
-  if (data['種別'] === '区分建物') {
-    if (data['一棟の建物の表示']) html += renderIttou(data['一棟の建物の表示']);
-    if (data['敷地権の目的である土地']) html += renderShikichiken(data['敷地権の目的である土地']);
-    if (data['専有部分の建物の表示']) html += renderSenyuu(data['専有部分の建物の表示']);
-    if (data['敷地権の表示']) html += renderShikichikenHyoji(data['敷地権の表示']);
-  }
+/* ═══════════════════════════════════════════════
+   Main Content Renderer
+   ═══════════════════════════════════════════════ */
+function renderContent() {
+  const data = allProps[selectedIdx];
+  if (!data) return;
 
-  // 権利部（甲区）
-  if (data['権利部_甲区'] && data['権利部_甲区'].length > 0) {
-    html += renderKenribu(data['権利部_甲区'], '権利部（甲区）', '所有権に関する事項');
-  }
-
-  // 権利部（乙区）
-  if (data['権利部_乙区'] && data['権利部_乙区'].length > 0) {
-    html += renderKenribu(data['権利部_乙区'], '権利部（乙区）', '所有権以外の権利に関する事項');
-  }
-
-  // 共同担保目録
-  if (data['共同担保目録']) {
-    html += renderKyoudouTanpo(data['共同担保目録']);
-  }
-
-  resultDiv.innerHTML = html;
-  resultDiv.classList.add('active');
+  const annotations = buildAnnotations(data);
+  const issueCount = Object.values(annotations).flat().filter(a => a.type === 'error' || a.type === 'warn').length;
+  const countEl = document.getElementById('issueCount');
+  if (issueCount > 0) { countEl.style.display = ''; countEl.textContent = issueCount; } else { countEl.style.display = 'none'; }
 
   // JSON
-  jsonArea.textContent = JSON.stringify(data, null, 2);
-  jsonToggle.style.display = 'block';
+  document.getElementById('jsonArea').textContent = JSON.stringify(data, null, 2);
+
+  let html = '<div class="reg-card">';
+
+  // 表題部
+  if (data['種別'] === '土地') html += renderHyodaiTochi(data);
+  else if (data['種別'] === '建物') html += renderHyodaiTatemono(data);
+  else if (data['種別'] === '区分建物') html += renderKubun(data);
+
+  // 甲区
+  html += renderKouA(data, annotations);
+
+  // 乙区
+  html += renderOtsu(data, annotations);
+
+  // 共同担保
+  if (data['共同担保目録']) html += renderKyoudouTanpo(data['共同担保目録']);
+
+  html += '</div>';
+  document.getElementById('mainContent').innerHTML = html;
 }
 
-function renderHyodaibuTochi(t) {
-  let html = `<div class="card">
-    <div class="card-header">表題部（土地の表示）</div>
-    <div class="card-body"><div class="info-grid">`;
-  if (t['不動産番号']) html += `<div class="label">不動産番号</div><div class="value">${esc(t['不動産番号'])}</div>`;
-  if (t['調製']) html += `<div class="label">調製</div><div class="value">${esc(t['調製'])}</div>`;
-  if (t['地図番号']) html += `<div class="label">地図番号</div><div class="value">${esc(t['地図番号'])}</div>`;
-  if (t['筆界特定']) html += `<div class="label">筆界特定</div><div class="value">${esc(t['筆界特定'])}</div>`;
-
-  if (t['所在'] && t['所在'].length > 0) {
-    html += `<div class="label">所在</div><div class="value"><ul class="shozai-list">`;
-    t['所在'].forEach(s => html += `<li>${esc(s)}</li>`);
-    html += `</ul></div>`;
+/* ── 表題部（土地）── */
+function renderHyodaiTochi(data) {
+  const t = data['表題部'] || {};
+  let html = `<div class="sec-head"><span>表題部（土地の表示）</span><span style="font-size:11px;color:var(--muted);font-weight:400">不動産番号: ${esc(t['不動産番号'] || '—')}</span></div>`;
+  html += '<table class="reg-table"><tbody>';
+  if (t['所在'] && t['所在'].length) {
+    html += `<tr><td class="sub kv-th" style="width:80px">所在</td><td>${t['所在'].map((s, i) => i === 0 ? esc(s) : `<div class="loc-history">${esc(s)}</div>`).join('')}</td></tr>`;
   }
+  if (t['地図番号']) html += `<tr><td class="sub kv-th">地図番号</td><td>${esc(t['地図番号'])}</td></tr>`;
+  html += '</tbody></table>';
 
-  if (t['地番']) html += `<div class="label">地番</div><div class="value"><strong>${esc(t['地番'])}</strong></div>`;
-  if (t['地目']) html += `<div class="label">地目</div><div class="value"><strong>${esc(t['地目'])}</strong></div>`;
-  if (t['地積']) html += `<div class="label">地積</div><div class="value"><strong>${esc(t['地積'])} ㎡</strong></div>`;
-
-  // 地番履歴
-  if (t['地番履歴'] && t['地番履歴'].length > 0) {
-    html += `<div class="label">変更履歴</div><div class="value"><ul class="detail-list">`;
-    t['地番履歴'].forEach(e => {
-      let parts = [];
-      if (e['地番']) parts.push(e['地番']);
-      if (e['地目']) parts.push(e['地目']);
-      if (e['地積']) parts.push(e['地積'] + '㎡');
-      if (e['原因日付']) parts.push(e['原因日付']);
-      if (e['追加情報']) e['追加情報'].forEach(a => parts.push(a));
-      html += `<li>${esc(parts.join(' / '))}</li>`;
+  // 地番テーブル
+  const rows = t['地番履歴'] || [];
+  if (rows.length > 0) {
+    html += '<table class="reg-table"><thead><tr><th style="width:100px">地番</th><th style="width:70px">地目</th><th style="width:90px">地積</th><th>原因及びその日付</th></tr></thead><tbody>';
+    rows.forEach((r, i) => {
+      const isLast = i === rows.length - 1 || !rows.slice(i + 1).some(x => x['地目'] || x['地積']);
+      const hasData = r['地目'] || r['地積'];
+      const op = hasData && !isLast ? 'opacity:0.4;' : '';
+      const strikeC = hasData && !isLast ? ' strike' : '';
+      const boldC = isLast ? ' bold' : '';
+      let cause = esc(r['原因日付'] || '');
+      if (r['追加情報']) cause += ' ' + r['追加情報'].map(esc).join(' ');
+      html += `<tr style="${op}">
+        <td class="${r['地番'] ? 'bold' : ''}${strikeC}">${esc(r['地番'])}</td>
+        <td class="${boldC}${strikeC}">${esc(r['地目'])}</td>
+        <td class="${boldC}${strikeC}">${esc(r['地積'])}${r['地積'] ? ' ㎡' : ''}</td>
+        <td class="sub">${cause}</td></tr>`;
     });
-    html += `</ul></div>`;
+    html += '</tbody></table>';
   }
-
-  html += `</div></div></div>`;
   return html;
 }
 
-function renderHyodaibuTatemono(t) {
-  let html = `<div class="card">
-    <div class="card-header">表題部（建物の表示）</div>
-    <div class="card-body"><div class="info-grid">`;
-  if (t['不動産番号']) html += `<div class="label">不動産番号</div><div class="value">${esc(t['不動産番号'])}</div>`;
-  if (t['調製']) html += `<div class="label">調製</div><div class="value">${esc(t['調製'])}</div>`;
-  if (t['所在']) html += `<div class="label">所在</div><div class="value">${esc(t['所在'])}</div>`;
-  if (t['家屋番号']) html += `<div class="label">家屋番号</div><div class="value">${esc(t['家屋番号'])}</div>`;
-  if (t['建物の名称']) html += `<div class="label">建物の名称</div><div class="value">${esc(t['建物の名称'])}</div>`;
-  if (t['種類']) html += `<div class="label">種類</div><div class="value"><strong>${esc(t['種類'])}</strong></div>`;
-  if (t['構造']) html += `<div class="label">構造</div><div class="value"><strong>${esc(t['構造'])}</strong></div>`;
-
-  if (t['床面積'] && t['床面積'].length > 0) {
-    html += `<div class="label">床面積</div><div class="value"><div class="menseki-list">`;
-    t['床面積'].forEach(m => html += `<span class="menseki-item">${esc(m)} ㎡</span>`);
-    html += `</div></div>`;
+/* ── 表題部（建物）── */
+function renderHyodaiTatemono(data) {
+  const t = data['表題部'] || {};
+  let html = `<div class="sec-head"><span>表題部（建物の表示）</span><span style="font-size:11px;color:var(--muted);font-weight:400">不動産番号: ${esc(t['不動産番号'] || '—')}</span></div>`;
+  html += '<table class="reg-table"><tbody>';
+  if (t['所在']) html += `<tr><td class="sub kv-th" style="width:80px">所在</td><td>${esc(t['所在'])}</td></tr>`;
+  if (t['家屋番号']) html += `<tr><td class="sub kv-th">家屋番号</td><td>${esc(t['家屋番号'])}</td></tr>`;
+  if (t['種類']) html += `<tr><td class="sub kv-th">種類</td><td class="bold">${esc(t['種類'])}</td></tr>`;
+  if (t['構造']) html += `<tr><td class="sub kv-th">構造</td><td class="bold">${esc(t['構造'])}</td></tr>`;
+  if (t['床面積'] && t['床面積'].length) {
+    html += `<tr><td class="sub kv-th">床面積</td><td><div class="menseki-list">${t['床面積'].map(m => `<span class="menseki-item">${esc(m)} ㎡</span>`).join('')}</div></td></tr>`;
   }
-
-  if (t['原因日付'] && t['原因日付'].length > 0) {
-    html += `<div class="label">原因及び日付</div><div class="value"><ul class="detail-list">`;
-    t['原因日付'].forEach(r => { if (r) html += `<li>${esc(r)}</li>`; });
-    html += `</ul></div>`;
+  if (t['原因日付'] && t['原因日付'].length) {
+    html += `<tr><td class="sub kv-th">原因</td><td class="sub">${t['原因日付'].filter(Boolean).map(esc).join('<br>')}</td></tr>`;
   }
-
-  html += `</div></div></div>`;
+  html += '</tbody></table>';
   return html;
 }
 
-function renderIttou(d) {
-  let html = `<div class="card">
-    <div class="card-header">表題部（一棟の建物の表示）</div>
-    <div class="card-body"><div class="info-grid">`;
-  if (d['調製']) html += `<div class="label">調製</div><div class="value">${esc(d['調製'])}</div>`;
-  if (d['所在']) html += `<div class="label">所在</div><div class="value">${esc(d['所在'])}</div>`;
-  if (d['建物の名称']) html += `<div class="label">建物の名称</div><div class="value"><strong>${esc(d['建物の名称'])}</strong></div>`;
-  if (d['構造']) html += `<div class="label">構造</div><div class="value">${esc(d['構造'])}</div>`;
+/* ── 区分建物 ── */
+function renderKubun(data) {
+  let html = '';
 
-  if (d['床面積'] && d['床面積'].length > 0) {
-    html += `<div class="label">床面積</div><div class="value"><div class="menseki-list">`;
-    d['床面積'].forEach(m => html += `<span class="menseki-item">${esc(m)} ㎡</span>`);
-    html += `</div></div>`;
-  }
-
-  html += `</div></div></div>`;
-  return html;
-}
-
-function renderShikichiken(list) {
-  let html = `<div class="card">
-    <div class="card-header">表題部（敷地権の目的である土地の表示）</div>
-    <div class="card-body">
-    <table class="kenri-table"><tr><th>符号</th><th>所在及び地番</th><th>地目</th><th>地積</th><th>登記の日付</th></tr>`;
-  list.forEach(e => {
-    html += `<tr>
-      <td>${esc(e['土地の符号'])}</td>
-      <td>${esc(e['所在及び地番'])}</td>
-      <td>${esc(e['地目'])}</td>
-      <td>${esc(e['地積'])} ㎡</td>
-      <td>${esc(e['登記の日付'])}</td>
-    </tr>`;
-  });
-  html += `</table></div></div>`;
-  return html;
-}
-
-function renderSenyuu(d) {
-  let html = `<div class="card">
-    <div class="card-header">表題部（専有部分の建物の表示）</div>
-    <div class="card-body"><div class="info-grid">`;
-  if (d['不動産番号']) html += `<div class="label">不動産番号</div><div class="value">${esc(d['不動産番号'])}</div>`;
-  if (d['家屋番号']) html += `<div class="label">家屋番号</div><div class="value">${esc(d['家屋番号'])}</div>`;
-  if (d['建物の名称']) html += `<div class="label">建物の名称</div><div class="value">${esc(d['建物の名称'])}</div>`;
-  if (d['種類']) html += `<div class="label">種類</div><div class="value"><strong>${esc(d['種類'])}</strong></div>`;
-  if (d['構造']) html += `<div class="label">構造</div><div class="value"><strong>${esc(d['構造'])}</strong></div>`;
-
-  if (d['床面積'] && d['床面積'].length > 0) {
-    html += `<div class="label">床面積</div><div class="value"><div class="menseki-list">`;
-    d['床面積'].forEach(m => html += `<span class="menseki-item">${esc(m)} ㎡</span>`);
-    html += `</div></div>`;
-  }
-
-  html += `</div></div></div>`;
-  return html;
-}
-
-function renderShikichikenHyoji(list) {
-  let html = `<div class="card">
-    <div class="card-header">表題部（敷地権の表示）</div>
-    <div class="card-body">
-    <table class="kenri-table"><tr><th>土地の符号</th><th>敷地権の種類</th><th>敷地権の割合</th><th>原因及び日付</th></tr>`;
-  list.forEach(e => {
-    html += `<tr>
-      <td>${esc(e['土地の符号'])}</td>
-      <td>${esc(e['敷地権の種類'])}</td>
-      <td>${esc(e['敷地権の割合'])}</td>
-      <td>${esc(e['原因日付'])}</td>
-    </tr>`;
-  });
-  html += `</table></div></div>`;
-  return html;
-}
-
-function renderKenribu(entries, title, subtitle) {
-  let html = `<div class="card">
-    <div class="card-header">${esc(title)}<span class="badge">${esc(subtitle)}</span></div>
-    <div class="card-body">
-    <table class="kenri-table">
-      <tr><th>順位</th><th>登記の目的</th><th>受付年月日</th><th>受付番号</th><th>権利者その他の事項</th></tr>`;
-
-  entries.forEach(e => {
-    let detailHtml = '<ul class="detail-list">';
-    const d = e['詳細'] || {};
-    for (const [k, v] of Object.entries(d)) {
-      detailHtml += `<li><span class="dk">${esc(k)}</span>${esc(v)}</li>`;
+  // 一棟の建物
+  const ittou = data['一棟の建物の表示'];
+  if (ittou) {
+    html += `<div class="sec-head"><span>表題部（一棟の建物の表示）</span></div>`;
+    html += '<table class="reg-table"><tbody>';
+    if (ittou['所在']) html += `<tr><td class="sub kv-th" style="width:80px">所在</td><td>${esc(ittou['所在'])}</td></tr>`;
+    if (ittou['建物の名称']) html += `<tr><td class="sub kv-th">建物の名称</td><td class="bold">${esc(ittou['建物の名称'])}</td></tr>`;
+    if (ittou['構造']) html += `<tr><td class="sub kv-th">構造</td><td>${esc(ittou['構造'])}</td></tr>`;
+    if (ittou['床面積'] && ittou['床面積'].length) {
+      html += `<tr><td class="sub kv-th">床面積</td><td><div class="menseki-list">${ittou['床面積'].map(m => `<span class="menseki-item">${esc(m)} ㎡</span>`).join('')}</div></td></tr>`;
     }
-    detailHtml += '</ul>';
+    html += '</tbody></table>';
+  }
 
-    html += `<tr>
-      <td>${esc(e['順位番号'])}</td>
-      <td>${esc(e['登記の目的'])}</td>
-      <td style="white-space:nowrap">${esc(e['受付年月日'])}</td>
-      <td style="white-space:nowrap">${esc(e['受付番号'])}</td>
-      <td>${detailHtml}</td>
-    </tr>`;
-  });
+  // 敷地権の目的である土地
+  const shikichi = data['敷地権の目的である土地'];
+  if (shikichi && shikichi.length) {
+    html += `<div class="sec-head"><span>表題部（敷地権の目的である土地の表示）</span></div>`;
+    html += '<table class="reg-table"><thead><tr><th>符号</th><th>所在及び地番</th><th>地目</th><th>地積</th><th>登記の日付</th></tr></thead><tbody>';
+    shikichi.forEach(e => {
+      html += `<tr><td>${esc(e['土地の符号'])}</td><td>${esc(e['所在及び地番'])}</td><td>${esc(e['地目'])}</td><td>${esc(e['地積'])}${e['地積'] ? ' ㎡' : ''}</td><td class="sub">${esc(e['登記の日付'])}</td></tr>`;
+    });
+    html += '</tbody></table>';
+  }
 
-  html += `</table></div></div>`;
+  // 専有部分
+  const senyuu = data['専有部分の建物の表示'];
+  if (senyuu) {
+    html += `<div class="sec-head"><span>表題部（専有部分の建物の表示）</span><span style="font-size:11px;color:var(--muted);font-weight:400">不動産番号: ${esc(senyuu['不動産番号'] || '—')}</span></div>`;
+    html += '<table class="reg-table"><tbody>';
+    if (senyuu['家屋番号']) html += `<tr><td class="sub kv-th" style="width:80px">家屋番号</td><td>${esc(senyuu['家屋番号'])}</td></tr>`;
+    if (senyuu['建物の名称']) html += `<tr><td class="sub kv-th">建物の名称</td><td>${esc(senyuu['建物の名称'])}</td></tr>`;
+    if (senyuu['種類']) html += `<tr><td class="sub kv-th">種類</td><td class="bold">${esc(senyuu['種類'])}</td></tr>`;
+    if (senyuu['構造']) html += `<tr><td class="sub kv-th">構造</td><td class="bold">${esc(senyuu['構造'])}</td></tr>`;
+    if (senyuu['床面積'] && senyuu['床面積'].length) {
+      html += `<tr><td class="sub kv-th">床面積</td><td><div class="menseki-list">${senyuu['床面積'].map(m => `<span class="menseki-item">${esc(m)} ㎡</span>`).join('')}</div></td></tr>`;
+    }
+    html += '</tbody></table>';
+  }
+
+  // 敷地権の表示
+  const shikichiH = data['敷地権の表示'];
+  if (shikichiH && shikichiH.length) {
+    html += `<div class="sec-head"><span>表題部（敷地権の表示）</span></div>`;
+    html += '<table class="reg-table"><thead><tr><th>土地の符号</th><th>敷地権の種類</th><th>敷地権の割合</th><th>原因及び日付</th></tr></thead><tbody>';
+    shikichiH.forEach(e => {
+      html += `<tr><td>${esc(e['土地の符号'])}</td><td>${esc(e['敷地権の種類'])}</td><td>${esc(e['敷地権の割合'])}</td><td class="sub">${esc(e['原因日付'])}</td></tr>`;
+    });
+    html += '</tbody></table>';
+  }
+
   return html;
 }
 
-function renderKyoudouTanpo(d) {
-  let html = `<div class="card">
-    <div class="card-header">共同担保目録</div>
-    <div class="card-body">
-    <div class="info-grid">
-      <div class="label">記号及び番号</div><div class="value">${esc(d['記号番号'])}</div>
-      <div class="label">調製</div><div class="value">${esc(d['調製'])}</div>
-    </div>`;
+/* ── 甲区 ── */
+function renderKouA(data, annotations) {
+  const entries = data['権利部_甲区'] || [];
+  const activeOwner = entries.slice().reverse().find(e => e['登記の目的']?.match(/所有権(移転|保存)/));
+  const ownerName = activeOwner?.['詳細']?.['所有者'] || '';
 
-  if (d['担保一覧'] && d['担保一覧'].length > 0) {
-    html += `<table class="kenri-table" style="margin-top:12px">
-      <tr><th>番号</th><th>担保の目的である権利の表示</th><th>順位番号</th><th>予備</th></tr>`;
-    d['担保一覧'].forEach(e => {
-      html += `<tr>
-        <td>${esc(e['番号'])}</td>
-        <td>${esc(e['担保の目的'])}</td>
-        <td>${esc(e['順位番号'])}</td>
-        <td>${esc(e['予備'])}</td>
-      </tr>`;
+  let html = `<div class="sec-head"><span>甲区（所有権に関する事項）</span>`;
+  if (ownerName) html += `<span class="right">現所有者: ${esc(ownerName)}</span>`;
+  html += '</div>';
+
+  html += '<table class="reg-table"><thead><tr><th style="width:36px;text-align:center">順位</th><th style="width:100px">登記の目的</th><th style="width:120px">受付</th><th>権利者その他の事項</th></tr></thead><tbody>';
+
+  if (!entries.length) {
+    html += '<tr class="empty-row"><td colspan="4">甲区の登記なし</td></tr>';
+  } else {
+    entries.forEach(e => {
+      const active = isActiveKou(e, data);
+      const isFuki = e['順位番号']?.includes('付記');
+      const visible = viewMode === 'current' ? (active && !isFuki) : true;
+      if (!visible) return;
+      const opClass = active ? '' : ' inactive';
+      const d = e['詳細'] || {};
+      let detailHtml = '';
+      if (d['原因']) detailHtml += `<div class="detail-line sub">${esc(d['原因'])}</div>`;
+      if (d['所有者']) detailHtml += `<div class="owner-block"><span class="owner-label">所有者</span><div class="owner-name">${esc(d['所有者'])}</div></div>`;
+      if (d['住所']) detailHtml += `<div class="detail-line"><span class="detail-label">住所</span>${esc(d['住所'])}</div>`;
+      if (d['氏名住所']) detailHtml += `<div class="detail-line"><span class="detail-label">氏名住所</span>${esc(d['氏名住所'])}</div>`;
+      if (d['順位移記']) detailHtml += `<div class="detail-line muted">${esc(d['順位移記'])}</div>`;
+      if (d['管轄転属']) detailHtml += `<div class="detail-line muted">${esc(d['管轄転属'])}</div>`;
+
+      html += `<tr class="${opClass}">
+        <td class="rank">${esc(e['順位番号'])}</td>
+        <td class="bordered">${esc(e['登記の目的'])}</td>
+        <td class="bordered sub">${esc(e['受付年月日'])}<br>${esc(e['受付番号'])}</td>
+        <td>${detailHtml}</td></tr>`;
     });
-    html += `</table>`;
   }
+  html += '</tbody></table>';
+  return html;
+}
 
-  html += `</div></div>`;
+/* ── 乙区 ── */
+function renderOtsu(data, annotations) {
+  const entries = data['権利部_乙区'] || [];
+  const activeM = entries.filter(e => !e['登記の目的']?.includes('抹消') && isActiveOtsu(e, data));
+
+  let html = `<div class="sec-head"><span>乙区（所有権以外の権利に関する事項）</span>`;
+  if (activeM.length > 0) html += `<span class="right red">有効担保 ${activeM.length}件</span>`;
+  else html += `<span class="right green">担保権なし</span>`;
+  html += '</div>';
+
+  html += '<table class="reg-table"><thead><tr><th style="width:36px;text-align:center">順位</th><th style="width:100px">登記の目的</th><th style="width:120px">受付</th><th>権利者その他の事項</th></tr></thead><tbody>';
+
+  const visEntries = viewMode === 'current' ? entries.filter(e => !e['登記の目的']?.includes('抹消') && isActiveOtsu(e, data)) : entries;
+
+  if (!visEntries.length) {
+    html += `<tr class="empty-row"><td colspan="4">${viewMode === 'current' ? '有効な担保権なし' : '乙区の登記なし'}</td></tr>`;
+  } else {
+    visEntries.forEach(e => {
+      const isDeletion = e['登記の目的']?.includes('抹消');
+      const active = isActiveOtsu(e, data);
+      const opClass = (active && !isDeletion) ? '' : isDeletion ? '' : ' inactive';
+      const d = e['詳細'] || {};
+
+      // Find if this entry was deleted
+      let deletionInfo = '';
+      if (!isDeletion && !active) {
+        const deleter = entries.find(x => x['登記の目的']?.includes('抹消') && x['登記の目的']?.includes(e['順位番号'] + '番'));
+        if (deleter) {
+          deletionInfo = `<div class="deletion-badge">→ ${esc(deleter['順位番号'])}番で抹消（${esc(deleter['詳細']?.['原因'] || '')}）</div>`;
+        }
+      }
+
+      const fields = [
+        d['原因'] && { l: '原因', v: d['原因'] },
+        d['債権額'] && { l: null, v: d['債権額'], b: true },
+        d['極度額'] && { l: null, v: d['極度額'], b: true },
+        d['利息'] && { l: '利息', v: d['利息'] },
+        d['損害金'] && { l: '損害金', v: d['損害金'] },
+        d['債権の範囲'] && { l: '債権の範囲', v: d['債権の範囲'] },
+        d['債務者'] && { l: '債務者', v: d['債務者'] },
+        d['抵当権者'] && { l: e['登記の目的']?.includes('根抵当') ? '根抵当権者' : '抵当権者', v: d['抵当権者'], b: true },
+        d['根抵当権者'] && { l: '根抵当権者', v: d['根抵当権者'], b: true },
+        d['共同担保'] && { l: '共同担保', v: d['共同担保'] },
+        d['順位移記'] && { l: null, v: d['順位移記'] },
+        d['管轄転属'] && { l: null, v: d['管轄転属'] },
+      ].filter(Boolean);
+
+      let detailHtml = fields.map(f =>
+        `<div class="detail-line">${f.l ? `<span class="detail-label">${esc(f.l)}</span>` : ''}<span${f.b ? ' class="bold"' : ''}>${esc(f.v)}</span></div>`
+      ).join('');
+      detailHtml += deletionInfo;
+      detailHtml += renderBadge(annotations, `乙区-${e['順位番号']}`);
+
+      html += `<tr class="${opClass}">
+        <td class="rank">${esc(e['順位番号'])}</td>
+        <td class="bordered">${esc(e['登記の目的'])}</td>
+        <td class="bordered sub">${esc(e['受付年月日'])}<br>${esc(e['受付番号'])}</td>
+        <td>${detailHtml}</td></tr>`;
+    });
+  }
+  html += '</tbody></table>';
+  return html;
+}
+
+/* ── 共同担保目録 ── */
+function renderKyoudouTanpo(d) {
+  let html = `<div class="sec-head"><span>共同担保目録</span>`;
+  html += '</div>';
+  html += `<div style="display:flex;gap:16px;padding:6px 12px;font-size:11.5px;color:var(--sub);border-bottom:1px solid var(--line-light)">`;
+  html += `<span><span class="muted">記号及び番号</span> ${esc(d['記号番号'])}</span>`;
+  if (d['調製']) html += `<span><span class="muted">調製</span> ${esc(d['調製'])}</span>`;
+  html += '</div>';
+
+  html += '<table class="reg-table"><thead><tr><th style="width:36px;text-align:center">番号</th><th>担保の目的である権利の表示</th><th style="width:44px;text-align:center">順位</th><th style="width:200px">予備</th></tr></thead><tbody>';
+  (d['担保一覧'] || []).forEach(it => {
+    const isDeleted = it['予備']?.includes('抹消');
+    const op = isDeleted ? 'opacity:0.4;' : '';
+    html += `<tr style="${op}">
+      <td class="center bordered">${esc(it['番号'])}</td>
+      <td class="bordered${isDeleted ? ' strike' : ''}">${esc(it['担保の目的'])}</td>
+      <td class="center bordered">${esc(it['順位番号'])}</td>
+      <td class="sub" style="font-size:10.5px">${esc(it['予備'])}</td></tr>`;
+  });
+  html += '</tbody></table>';
   return html;
 }
 </script>
