@@ -58,19 +58,20 @@ header .tabs { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
 
 .btn-small { padding: 4px 10px; border-radius: 5px; font-size: 11px; font-weight: 500; cursor: pointer; background: var(--white); color: var(--sub); border: 1px solid var(--line); font-family: inherit; }
 
-main { padding: 20px; max-width: 920px; }
+main { padding: 20px; max-width: 1400px; }
 
 /* ── Card ── */
 .reg-card { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--white); }
-.sec-head { padding: 8px 12px; font-size: 12.5px; font-weight: 700; color: var(--sub); background: var(--bg); border-bottom: 1px solid var(--line); letter-spacing: 0.06em; display: flex; justify-content: space-between; align-items: center; }
+.sec-head { padding: 10px 14px; font-size: 13px; font-weight: 700; color: var(--sub); background: var(--bg); border-bottom: 1px solid var(--line); border-top: 3px solid var(--line); letter-spacing: 0.06em; display: flex; justify-content: space-between; align-items: center; }
+.sec-head:first-child { border-top: none; }
 .sec-head .right { font-size: 12.5px; font-weight: 600; }
 .sec-head .right.red { color: var(--red); }
 .sec-head .right.green { color: var(--green); font-weight: 500; }
 
 /* ── Table ── */
 .reg-table { width: 100%; border-collapse: collapse; }
-.reg-table th { padding: 7px 10px; font-size: 12.5px; color: var(--muted); background: var(--bg); border-bottom: 1px solid var(--line); border-right: 1px solid var(--line-light); vertical-align: top; text-align: left; font-weight: 500; }
-.reg-table td { padding: 7px 10px; font-size: 13px; color: var(--text); border-bottom: 1px solid var(--line-light); vertical-align: top; line-height: 1.7; }
+.reg-table th { padding: 8px 12px; font-size: 12.5px; color: var(--muted); background: var(--bg); border-bottom: 1px solid var(--line); border-right: 1px solid var(--line-light); vertical-align: top; text-align: left; font-weight: 500; }
+.reg-table td { padding: 9px 12px; font-size: 13.5px; color: var(--text); border-bottom: 1px solid var(--line-light); vertical-align: top; line-height: 1.7; }
 .reg-table td.sub { color: var(--sub); }
 .reg-table td.center { text-align: center; }
 .reg-table td.rank { text-align: center; font-weight: 600; border-right: 1px solid var(--line-light); }
@@ -87,6 +88,12 @@ main { padding: 20px; max-width: 920px; }
 .reg-table .owner-label { color: var(--muted); font-size: 12px; }
 .reg-table .owner-name { font-weight: 600; }
 .reg-table .deletion-badge { margin-top: 4px; padding: 3px 8px; background: var(--green-bg); border-radius: 3px; font-size: 10.5px; color: var(--green); display: inline-block; }
+
+/* ── Active/Inactive entry styling ── */
+.entry-active { border-left: 3px solid var(--green); }
+.entry-inactive { background: #fafaf8; opacity: 0.5; }
+.entry-current { background: var(--green-bg); border-left: 3px solid var(--green); }
+.entry-deleted td { font-style: italic; color: var(--muted); }
 
 /* Key-value rows */
 .kv-th { width: 80px; }
@@ -124,6 +131,51 @@ footer span { font-size: 10px; color: var(--faint); }
 .drag-overlay.active { display: flex; }
 .drag-overlay .drop-icon { width: 52px; height: 52px; background: var(--blue-bg); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 14px; border: 2px dashed var(--blue); }
 .drag-overlay .drop-text { font-size: 14px; font-weight: 600; }
+
+/* ── Cross-analysis: Property cards grid ── */
+.cross-section { margin-bottom: 24px; }
+.cross-section-title { font-size: 14px; font-weight: 700; color: var(--sub); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid var(--line); letter-spacing: 0.04em; }
+.prop-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+.prop-card { background: var(--white); border: 1px solid var(--line); border-radius: 10px; padding: 16px; position: relative; }
+.prop-card-icon { font-size: 24px; margin-bottom: 6px; }
+.prop-card-type { font-size: 11px; color: var(--muted); font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 4px; }
+.prop-card-location { font-size: 14px; font-weight: 600; margin-bottom: 10px; line-height: 1.5; }
+.prop-card-meta { display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
+.prop-card-meta .meta-row { display: flex; gap: 6px; }
+.prop-card-meta .meta-label { color: var(--muted); min-width: 72px; flex-shrink: 0; }
+.prop-card-meta .meta-value { color: var(--text); font-weight: 500; }
+.prop-card-meta .meta-value.red { color: var(--red); }
+.prop-card-meta .meta-value.green { color: var(--green); }
+
+/* ── Cross-analysis: Shared collateral ── */
+.collateral-group { background: var(--white); border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+.collateral-group-title { font-size: 12px; font-weight: 600; color: var(--sub); margin-bottom: 8px; }
+.collateral-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.collateral-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 16px; font-size: 11px; font-weight: 500; background: var(--blue-bg); color: var(--blue); border: 1px solid transparent; }
+.collateral-chip:hover { border-color: var(--blue); }
+
+/* ── Cross-analysis: Side-by-side compare ── */
+.cross-compare { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 12px; }
+.cross-column { min-width: 400px; flex: 1; }
+.cross-column .reg-card { height: 100%; }
+.cross-column-header { font-size: 13px; font-weight: 700; padding: 8px 12px; background: var(--accent); color: #fff; border-radius: 8px 8px 0 0; text-align: center; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  main { padding: 12px; }
+  .reg-table th, .reg-table td { padding: 6px 8px; font-size: 12px; }
+  .sec-head { padding: 8px 10px; font-size: 12px; }
+  .prop-cards { grid-template-columns: 1fr; }
+  .cross-compare { flex-direction: column; }
+  .cross-column { min-width: unset; }
+  header .controls { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 480px) {
+  .reg-table th, .reg-table td { padding: 5px 6px; font-size: 11px; }
+  header { padding: 10px 12px; }
+  .tab-btn { padding: 4px 8px; font-size: 11px; }
+  .mode-btn { padding: 3px 8px; font-size: 10px; }
+}
 </style>
 </head>
 <body>
@@ -166,6 +218,7 @@ footer span { font-size: 10px; color: var(--faint); }
         <button class="mode-btn active" data-mode="all" onclick="setMode('all')">全部事項</button>
         <button class="mode-btn" data-mode="current" onclick="setMode('current')">現在事項</button>
         <button class="mode-btn" data-mode="analysis" onclick="setMode('analysis')">分析<span class="mode-count" id="issueCount" style="display:none">0</span></button>
+        <button class="mode-btn" data-mode="cross" onclick="setMode('cross')" id="crossBtn" style="display:none">横断分析</button>
       </div>
     </div>
   </header>
@@ -188,7 +241,7 @@ footer span { font-size: 10px; color: var(--faint); }
    ═══════════════════════════════════════════════ */
 let allProps = [];
 let selectedIdx = 0;
-let viewMode = 'all'; // all | current | analysis
+let viewMode = 'all'; // all | current | analysis | cross
 
 /* ═══════════════════════════════════════════════
    Upload & Parse
@@ -262,6 +315,8 @@ function showError(msg) {
 function showResultPage() {
   uploadScreen.style.display = 'none';
   resultPage.classList.add('active');
+  // Show/hide cross-analysis button
+  document.getElementById('crossBtn').style.display = allProps.length >= 2 ? '' : 'none';
   renderTabs();
   renderContent();
 }
@@ -279,17 +334,23 @@ function renderTabs() {
   allProps.forEach((p, i) => {
     const icon = p['種別'] === '土地' ? '📐' : p['種別'] === '区分建物' ? '🏢' : '🏠';
     const label = p['種別'] || '物件';
-    const cls = i === selectedIdx ? 'tab-btn active' : 'tab-btn';
+    const cls = (i === selectedIdx && viewMode !== 'cross') ? 'tab-btn active' : 'tab-btn';
     html += `<button class="${cls}" onclick="selectProp(${i})">${icon} ${esc(label)}</button>`;
   });
   html += `<button class="tab-btn dashed" onclick="addMore()">+</button>`;
   container.innerHTML = html;
 }
 
-function selectProp(i) { selectedIdx = i; renderTabs(); renderContent(); }
+function selectProp(i) {
+  selectedIdx = i;
+  if (viewMode === 'cross') setMode('all');
+  else { renderTabs(); renderContent(); }
+}
+
 function setMode(m) {
   viewMode = m;
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+  renderTabs();
   renderContent();
 }
 
@@ -306,6 +367,59 @@ function toggleJson() {
 }
 
 /* ═══════════════════════════════════════════════
+   Highlight Logic (improved)
+   ═══════════════════════════════════════════════ */
+
+/** Check if an otsu entry has been deleted by a later entry using exact rank matching */
+function isDeletedByLaterEntry(rank, entries) {
+  if (!rank) return false;
+  const re = new RegExp('(^|[^\\d])' + rank + '番');
+  return entries.some(e => {
+    const purpose = e['登記の目的'] || '';
+    return purpose.includes('抹消') && re.test(purpose);
+  });
+}
+
+function isActiveOtsu(entry, data) {
+  const purpose = entry['登記の目的'] || '';
+  if (purpose.includes('抹消')) return false;
+  const rank = entry['順位番号'];
+  if (!rank) return true;
+  return !isDeletedByLaterEntry(rank, data['権利部_乙区'] || []);
+}
+
+function isActiveKou(entry, data) {
+  const purpose = entry['登記の目的'] || '';
+  const kouA = data['権利部_甲区'] || [];
+  const myRank = parseInt(entry['順位番号']);
+
+  // Ownership transfer/preservation: inactive if a later transfer exists
+  if (purpose.includes('所有権移転') || purpose.includes('所有権保存')) {
+    return !kouA.some(e => {
+      const r2 = parseInt(e['順位番号']);
+      return r2 > myRank && (e['登記の目的']?.includes('所有権移転') || e['登記の目的']?.includes('所有権保存'));
+    });
+  }
+
+  // Other entries (差押, 仮登記, 付記 etc.): check if explicitly deleted
+  if (isDeletedByLaterEntry(entry['順位番号'], kouA)) return false;
+
+  // Check if purpose itself indicates deletion
+  if (purpose.includes('抹消') || purpose.includes('取消') || purpose.includes('却下')) return false;
+
+  return true;
+}
+
+/** Find the current owner entry (last active ownership transfer/preservation) */
+function getCurrentOwnerEntry(data) {
+  const kouA = data['権利部_甲区'] || [];
+  return kouA.slice().reverse().find(e => {
+    const p = e['登記の目的'] || '';
+    return (p.includes('所有権移転') || p.includes('所有権保存')) && isActiveKou(e, data);
+  });
+}
+
+/* ═══════════════════════════════════════════════
    Analysis
    ═══════════════════════════════════════════════ */
 function buildAnnotations(data) {
@@ -319,28 +433,6 @@ function buildAnnotations(data) {
   return a;
 }
 
-function isActiveOtsu(entry, data) {
-  const purpose = entry['登記の目的'] || '';
-  if (purpose.includes('抹消')) return false;
-  const rank = entry['順位番号'];
-  return !(data['権利部_乙区'] || []).some(e =>
-    e['登記の目的']?.includes('抹消') && e['登記の目的']?.includes(rank + '番')
-  );
-}
-
-function isActiveKou(entry, data) {
-  const purpose = entry['登記の目的'] || '';
-  if (purpose.includes('所有権移転') || purpose.includes('所有権保存')) {
-    const kouA = data['権利部_甲区'] || [];
-    const laterTransfer = kouA.find(e => {
-      const r1 = parseInt(entry['順位番号']), r2 = parseInt(e['順位番号']);
-      return r2 > r1 && (e['登記の目的']?.includes('所有権移転') || e['登記の目的']?.includes('所有権保存'));
-    });
-    return !laterTransfer;
-  }
-  return true;
-}
-
 function renderBadge(annotations, key) {
   if (viewMode !== 'analysis' || !annotations || !annotations[key]) return '';
   return annotations[key].map(a => {
@@ -351,9 +443,191 @@ function renderBadge(annotations, key) {
 }
 
 /* ═══════════════════════════════════════════════
+   Property Summary Helpers (for cross-analysis)
+   ═══════════════════════════════════════════════ */
+function getPropLocation(data) {
+  const t = data['表題部'] || {};
+  if (data['種別'] === '土地') {
+    const shozai = t['所在'] && t['所在'].length ? t['所在'][0] : '';
+    const chiban = (t['地番履歴'] || []).filter(r => r['地番']).map(r => r['地番']).pop() || '';
+    return shozai + (chiban ? ' ' + chiban : '');
+  }
+  if (data['種別'] === '建物') {
+    return t['所在'] || '';
+  }
+  if (data['種別'] === '区分建物') {
+    const senyuu = data['専有部分の建物の表示'] || {};
+    const ittou = data['一棟の建物の表示'] || {};
+    return ittou['所在'] || senyuu['家屋番号'] || '';
+  }
+  return '';
+}
+
+function getPropNumber(data) {
+  const t = data['表題部'] || {};
+  if (data['種別'] === '区分建物') return (data['専有部分の建物の表示'] || {})['不動産番号'] || '';
+  return t['不動産番号'] || '';
+}
+
+function getPropChimoku(data) {
+  const t = data['表題部'] || {};
+  if (data['種別'] === '土地') {
+    const rows = t['地番履歴'] || [];
+    for (let i = rows.length - 1; i >= 0; i--) { if (rows[i]['地目']) return rows[i]['地目']; }
+    return '';
+  }
+  if (data['種別'] === '建物' || data['種別'] === '区分建物') {
+    const s = data['種別'] === '区分建物' ? (data['専有部分の建物の表示'] || {}) : t;
+    return s['種類'] || '';
+  }
+  return '';
+}
+
+function getPropMenseki(data) {
+  const t = data['表題部'] || {};
+  if (data['種別'] === '土地') {
+    const rows = t['地番履歴'] || [];
+    for (let i = rows.length - 1; i >= 0; i--) { if (rows[i]['地積']) return rows[i]['地積'] + ' ㎡'; }
+    return '';
+  }
+  if (data['種別'] === '建物') return (t['床面積'] || []).join(', ') + (t['床面積']?.length ? ' ㎡' : '');
+  if (data['種別'] === '区分建物') {
+    const s = data['専有部分の建物の表示'] || {};
+    return (s['床面積'] || []).join(', ') + (s['床面積']?.length ? ' ㎡' : '');
+  }
+  return '';
+}
+
+function getOwnerName(data) {
+  const entry = getCurrentOwnerEntry(data);
+  return entry?.['詳細']?.['所有者'] || '';
+}
+
+function getActiveMortgages(data) {
+  return (data['権利部_乙区'] || []).filter(e =>
+    !e['登記の目的']?.includes('抹消') && isActiveOtsu(e, data)
+  );
+}
+
+function getCollateralNumber(data) {
+  const kt = data['共同担保目録'];
+  return kt ? kt['記号番号'] || '' : '';
+}
+
+/* ═══════════════════════════════════════════════
+   Cross-Analysis View
+   ═══════════════════════════════════════════════ */
+function renderCrossAnalysis() {
+  let html = '';
+
+  // A) Property Summary Cards
+  html += '<div class="cross-section">';
+  html += '<div class="cross-section-title">物件概要</div>';
+  html += '<div class="prop-cards">';
+  allProps.forEach((data, i) => {
+    const icon = data['種別'] === '土地' ? '📐' : data['種別'] === '区分建物' ? '🏢' : '🏠';
+    const activeMortgages = getActiveMortgages(data);
+    const totalAmount = activeMortgages.map(e => e['詳細']?.['債権額'] || e['詳細']?.['極度額'] || '').filter(Boolean);
+    const collNum = getCollateralNumber(data);
+
+    html += `<div class="prop-card">`;
+    html += `<div class="prop-card-icon">${icon}</div>`;
+    html += `<div class="prop-card-type">${esc(data['種別'] || '物件')}</div>`;
+    html += `<div class="prop-card-location">${esc(getPropLocation(data))}</div>`;
+    html += `<div class="prop-card-meta">`;
+    html += `<div class="meta-row"><span class="meta-label">不動産番号</span><span class="meta-value">${esc(getPropNumber(data)) || '—'}</span></div>`;
+
+    const chimoku = getPropChimoku(data);
+    if (chimoku) {
+      const label = data['種別'] === '土地' ? '地目' : '種類';
+      html += `<div class="meta-row"><span class="meta-label">${label}</span><span class="meta-value">${esc(chimoku)}</span></div>`;
+    }
+    const menseki = getPropMenseki(data);
+    if (menseki) {
+      const label = data['種別'] === '土地' ? '地積' : '床面積';
+      html += `<div class="meta-row"><span class="meta-label">${label}</span><span class="meta-value">${esc(menseki)}</span></div>`;
+    }
+    const owner = getOwnerName(data);
+    if (owner) html += `<div class="meta-row"><span class="meta-label">現所有者</span><span class="meta-value">${esc(owner)}</span></div>`;
+
+    if (activeMortgages.length > 0) {
+      html += `<div class="meta-row"><span class="meta-label">有効担保</span><span class="meta-value red">${activeMortgages.length}件</span></div>`;
+      if (totalAmount.length) html += `<div class="meta-row"><span class="meta-label">担保額</span><span class="meta-value red">${totalAmount.map(esc).join(', ')}</span></div>`;
+    } else {
+      html += `<div class="meta-row"><span class="meta-label">担保</span><span class="meta-value green">なし</span></div>`;
+    }
+    if (collNum) html += `<div class="meta-row"><span class="meta-label">共同担保</span><span class="meta-value">${esc(collNum)}</span></div>`;
+
+    html += '</div></div>';
+  });
+  html += '</div></div>';
+
+  // B) Shared Collateral Groups
+  const collGroups = {};
+  allProps.forEach((data, i) => {
+    const num = getCollateralNumber(data);
+    if (num) {
+      if (!collGroups[num]) collGroups[num] = [];
+      collGroups[num].push(i);
+    }
+  });
+  const sharedGroups = Object.entries(collGroups).filter(([, indices]) => indices.length > 1);
+
+  if (sharedGroups.length > 0) {
+    html += '<div class="cross-section">';
+    html += '<div class="cross-section-title">共同担保関連</div>';
+    sharedGroups.forEach(([num, indices]) => {
+      html += '<div class="collateral-group">';
+      html += `<div class="collateral-group-title">共同担保目録: ${esc(num)}</div>`;
+      html += '<div class="collateral-chips">';
+      indices.forEach(idx => {
+        const d = allProps[idx];
+        const icon = d['種別'] === '土地' ? '📐' : d['種別'] === '区分建物' ? '🏢' : '🏠';
+        const loc = getPropLocation(d);
+        html += `<span class="collateral-chip" onclick="selectProp(${idx})">${icon} ${esc(d['種別'])} ${esc(loc)}</span>`;
+      });
+      html += '</div></div>';
+    });
+    html += '</div>';
+  }
+
+  // C) Side-by-side detailed comparison
+  html += '<div class="cross-section">';
+  html += '<div class="cross-section-title">詳細比較</div>';
+  html += '<div class="cross-compare">';
+  allProps.forEach((data, i) => {
+    const icon = data['種別'] === '土地' ? '📐' : data['種別'] === '区分建物' ? '🏢' : '🏠';
+    const annotations = buildAnnotations(data);
+    html += '<div class="cross-column">';
+    html += `<div class="cross-column-header">${icon} ${esc(data['種別'] || '物件')} - ${esc(getPropLocation(data))}</div>`;
+    html += '<div class="reg-card" style="border-radius:0 0 10px 10px">';
+
+    if (data['種別'] === '土地') html += renderHyodaiTochi(data);
+    else if (data['種別'] === '建物') html += renderHyodaiTatemono(data);
+    else if (data['種別'] === '区分建物') html += renderKubun(data);
+
+    html += renderKouA(data, annotations);
+    html += renderOtsu(data, annotations);
+    if (data['共同担保目録']) html += renderKyoudouTanpo(data['共同担保目録']);
+
+    html += '</div></div>';
+  });
+  html += '</div></div>';
+
+  return html;
+}
+
+/* ═══════════════════════════════════════════════
    Main Content Renderer
    ═══════════════════════════════════════════════ */
 function renderContent() {
+  // Cross-analysis mode
+  if (viewMode === 'cross') {
+    document.getElementById('jsonArea').textContent = JSON.stringify(allProps, null, 2);
+    document.getElementById('mainContent').innerHTML = renderCrossAnalysis();
+    return;
+  }
+
   const data = allProps[selectedIdx];
   if (!data) return;
 
@@ -401,9 +675,11 @@ function renderHyodaiTochi(data) {
   if (rows.length > 0) {
     html += '<table class="reg-table"><thead><tr><th style="width:100px">地番</th><th style="width:70px">地目</th><th style="width:90px">地積</th><th>原因及びその日付</th></tr></thead><tbody>';
     rows.forEach((r, i) => {
-      const isLast = i === rows.length - 1 || !rows.slice(i + 1).some(x => x['地目'] || x['地積']);
+      // Find if there is a later row with data for the same fields
       const hasData = r['地目'] || r['地積'];
-      const op = hasData && !isLast ? 'opacity:0.4;' : '';
+      const laterHasData = rows.slice(i + 1).some(x => x['地目'] || x['地積']);
+      const isLast = hasData && !laterHasData;
+      const op = hasData && !isLast ? 'opacity:0.35;' : '';
       const strikeC = hasData && !isLast ? ' strike' : '';
       const boldC = isLast ? ' bold' : '';
       let cause = esc(r['原因日付'] || '');
@@ -499,8 +775,8 @@ function renderKubun(data) {
 /* ── 甲区 ── */
 function renderKouA(data, annotations) {
   const entries = data['権利部_甲区'] || [];
-  const activeOwner = entries.slice().reverse().find(e => e['登記の目的']?.match(/所有権(移転|保存)/));
-  const ownerName = activeOwner?.['詳細']?.['所有者'] || '';
+  const currentOwnerEntry = getCurrentOwnerEntry(data);
+  const ownerName = currentOwnerEntry?.['詳細']?.['所有者'] || '';
 
   let html = `<div class="sec-head"><span>甲区（所有権に関する事項）</span>`;
   if (ownerName) html += `<span class="right">現所有者: ${esc(ownerName)}</span>`;
@@ -516,7 +792,17 @@ function renderKouA(data, annotations) {
       const isFuki = e['順位番号']?.includes('付記');
       const visible = viewMode === 'current' ? (active && !isFuki) : true;
       if (!visible) return;
-      const opClass = active ? '' : ' inactive';
+
+      const isCurrent = currentOwnerEntry && e['順位番号'] === currentOwnerEntry['順位番号']
+        && e['登記の目的'] === currentOwnerEntry['登記の目的'];
+      const isDeletion = (e['登記の目的'] || '').match(/抹消|取消|却下/);
+
+      let rowClass = '';
+      if (isCurrent) rowClass = 'entry-current';
+      else if (isDeletion) rowClass = 'entry-deleted';
+      else if (!active) rowClass = 'entry-inactive';
+      else rowClass = 'entry-active';
+
       const d = e['詳細'] || {};
       let detailHtml = '';
       if (d['原因']) detailHtml += `<div class="detail-line sub">${esc(d['原因'])}</div>`;
@@ -526,7 +812,7 @@ function renderKouA(data, annotations) {
       if (d['順位移記']) detailHtml += `<div class="detail-line muted">${esc(d['順位移記'])}</div>`;
       if (d['管轄転属']) detailHtml += `<div class="detail-line muted">${esc(d['管轄転属'])}</div>`;
 
-      html += `<tr class="${opClass}">
+      html += `<tr class="${rowClass}">
         <td class="rank">${esc(e['順位番号'])}</td>
         <td class="bordered">${esc(e['登記の目的'])}</td>
         <td class="bordered sub">${esc(e['受付年月日'])}<br>${esc(e['受付番号'])}</td>
@@ -557,15 +843,22 @@ function renderOtsu(data, annotations) {
     visEntries.forEach(e => {
       const isDeletion = e['登記の目的']?.includes('抹消');
       const active = isActiveOtsu(e, data);
-      const opClass = (active && !isDeletion) ? '' : isDeletion ? '' : ' inactive';
+
+      let rowClass = '';
+      if (isDeletion) rowClass = 'entry-deleted';
+      else if (!active) rowClass = 'entry-inactive';
+      else rowClass = 'entry-active';
+
       const d = e['詳細'] || {};
 
       // Find if this entry was deleted
       let deletionInfo = '';
       if (!isDeletion && !active) {
-        const deleter = entries.find(x => x['登記の目的']?.includes('抹消') && x['登記の目的']?.includes(e['順位番号'] + '番'));
+        const rank = e['順位番号'];
+        const re = rank ? new RegExp('(^|[^\\d])' + rank + '番') : null;
+        const deleter = re ? entries.find(x => x['登記の目的']?.includes('抹消') && re.test(x['登記の目的'])) : null;
         if (deleter) {
-          deletionInfo = `<div class="deletion-badge">→ ${esc(deleter['順位番号'])}番で抹消（${esc(deleter['詳細']?.['原因'] || '')}）</div>`;
+          deletionInfo = `<div class="deletion-badge">\u2192 ${esc(deleter['順位番号'])}番で抹消（${esc(deleter['詳細']?.['原因'] || '')}）</div>`;
         }
       }
 
@@ -590,7 +883,7 @@ function renderOtsu(data, annotations) {
       detailHtml += deletionInfo;
       detailHtml += renderBadge(annotations, `乙区-${e['順位番号']}`);
 
-      html += `<tr class="${opClass}">
+      html += `<tr class="${rowClass}">
         <td class="rank">${esc(e['順位番号'])}</td>
         <td class="bordered">${esc(e['登記の目的'])}</td>
         <td class="bordered sub">${esc(e['受付年月日'])}<br>${esc(e['受付番号'])}</td>
@@ -613,7 +906,7 @@ function renderKyoudouTanpo(d) {
   html += '<table class="reg-table"><thead><tr><th style="width:36px;text-align:center">番号</th><th>担保の目的である権利の表示</th><th style="width:44px;text-align:center">順位</th><th style="width:200px">予備</th></tr></thead><tbody>';
   (d['担保一覧'] || []).forEach(it => {
     const isDeleted = it['予備']?.includes('抹消');
-    const op = isDeleted ? 'opacity:0.4;' : '';
+    const op = isDeleted ? 'opacity:0.35;' : '';
     html += `<tr style="${op}">
       <td class="center bordered">${esc(it['番号'])}</td>
       <td class="bordered${isDeleted ? ' strike' : ''}">${esc(it['担保の目的'])}</td>
